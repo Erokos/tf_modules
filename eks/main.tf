@@ -49,13 +49,17 @@ resource "aws_security_group_rule" "eks_vpc_allow_https" {
 }
 
 module "eks" {
-  source                             = "git::git@github.com:Erokos/terraform_modules.git//eks?ref=c72fce3"
+  source                             = "github.com/Erokos/terraform_modules//eks?ref=07d5fb8"
   eks_cluster_name                   = "gdna-cluster"
-  eks_worker_subnets                 = "${module.eks_vpc.private_subnets}"
+  source_security_group_id           = "${module.eks_vpc.default_security_group_id}"
   vpc_id                             = "${module.eks_vpc.vpc_id}"
+  vpc_zone_identifier                = "${module.eks_vpc.private_subnets}"
   worker_launch_template_mixed_count = 2
-  cluster_kubernetes_version¸        = "1.13"
+  cluster_kubernetes_version         = "1.13"
   bastion_vpc_zone_identifier        = "${module.eks_vpc.public_subnets}"
+  eks_worker_subnets                 = "${module.eks_vpc.private_subnets}"
+  key_name                           = "${var.key_name}"
+  key_value                          = "${var.key_value}"
 
   worker_launch_template_lst = [
     {
@@ -70,9 +74,10 @@ module "eks" {
       on_demand_base_capacity    = 0
       instance_shutdown_behavior = "terminate"
       enable_monitoring          = false
-      eks_ami_id                 = "ami-0c5d8b180f6256839" # kubernetes version 1.13
       key_name                   = "${var.key_name}"
       key_value                  = "${var.key_value}"
+      ebs_optimized              = false
+      #eks_ami_id                 = "ami-0c5d8b180f6256839"
     },
 
     {
@@ -87,9 +92,10 @@ module "eks" {
       on_demand_base_capacity    = 0
       instance_shutdown_behavior = "terminate"
       enable_monitoring          = false
-      eks_ami_id                 = "ami-0c5d8b180f6256839" # kubernetes version 1.13
       key_name                   = "${var.key_name}"
       key_value                  = "${var.key_value}"
+      ebs_optimized              = false
+      #eks_ami_id                 = "ami-0c5d8b180f6256839"
     }
   ]
 }
