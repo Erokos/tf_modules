@@ -49,7 +49,7 @@ resource "aws_security_group_rule" "eks_vpc_allow_https" {
 }
 
 module "eks" {
-  source                             = "github.com/Erokos/terraform_modules//eks?ref=07d5fb8"
+  source                             = "github.com/Erokos/terraform_modules//eks?ref=417cb77"
   eks_cluster_name                   = "gdna-cluster"
   source_security_group_id           = "${module.eks_vpc.default_security_group_id}"
   vpc_id                             = "${module.eks_vpc.vpc_id}"
