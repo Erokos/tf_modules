@@ -21,6 +21,7 @@ module "eks_vpc" {
 
   #  external_nat_ip_ids  = ["${var.eks-nat-fixed-eip}"]
   enable_dns_hostnames = true
+  enable_dns_support   = true
 
   tags = {
     Terraform          = "true"
@@ -49,17 +50,20 @@ resource "aws_security_group_rule" "eks_vpc_allow_https" {
 }
 
 module "eks" {
-  source                             = "github.com/Erokos/terraform_modules//eks?ref=417cb77"
-  eks_cluster_name                   = "gdna-cluster"
+  source                             = "github.com/Erokos/terraform_modules//eks?ref=9a35fc8"
+  eks_cluster_name                   = "gdna-test-cluster"
+  region_name                        = "${var.region_name}"
   source_security_group_id           = "${module.eks_vpc.default_security_group_id}"
   vpc_id                             = "${module.eks_vpc.vpc_id}"
   vpc_zone_identifier                = "${module.eks_vpc.private_subnets}"
   worker_launch_template_mixed_count = 2
-  cluster_kubernetes_version         = "1.13"
+  cluster_kubernetes_version         = "1.14"
   bastion_vpc_zone_identifier        = "${module.eks_vpc.public_subnets}"
   eks_worker_subnets                 = "${module.eks_vpc.private_subnets}"
   key_name                           = "${var.key_name}"
   key_value                          = "${var.key_value}"
+  aws_access_key                     = "fill_in"
+  aws_secret_access_key              = "fill_in"
 
   worker_launch_template_lst = [
     {
@@ -77,7 +81,6 @@ module "eks" {
       key_name                   = "${var.key_name}"
       key_value                  = "${var.key_value}"
       ebs_optimized              = false
-      #eks_ami_id                 = "ami-0c5d8b180f6256839"
     },
 
     {
@@ -86,8 +89,8 @@ module "eks" {
       instance_type_pool2        = ""
       instance_type_pool3        = ""
       spot_instance_pools        = 1
-      asg_max_size               = 1
-      asg_desired_capacity       = 1
+      asg_max_size               = 3
+      asg_desired_capacity       = 2
       kubelet_extra_args         = "lifecycle=spot,worker-type=compute-optimized"
       on_demand_base_capacity    = 0
       instance_shutdown_behavior = "terminate"
@@ -95,7 +98,6 @@ module "eks" {
       key_name                   = "${var.key_name}"
       key_value                  = "${var.key_value}"
       ebs_optimized              = false
-      #eks_ami_id                 = "ami-0c5d8b180f6256839"
     }
   ]
 }
